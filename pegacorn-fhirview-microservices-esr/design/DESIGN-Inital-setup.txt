@@ -1,0 +1,29 @@
+Inital setup
+============
+
+kubectl create secret generic pegacorn-fhirview-microservices-esr-secrets --from-literal=keyPassword="Peg@cornK3yFVMESR" --from-literal=truststorePassword="Peg@cornTrustSt0re" --namespace=site-a
+
+cd \dev\github\pegacorn-fhirview\pegacorn-fhirview-microservices-esr
+
+If using mimic
+  mkdir target
+  copy /Y \dev\github\pegacorn-mimic\pegacorn-mimic-server\pegacorn-mimic-server-subsystem\target\*.war target\
+  copy /Y \dev\github\pegacorn-mimic\pegacorn-mimic-cli\pegacorn-mimic-cli-general\target\*-jar-with-dependencies.jar target\
+  copy /Y \dev\github\pegacorn-mimic\pegacorn-mimic-cli\pegacorn-mimic-cli-general\*.csv target\  
+
+docker build . --rm --no-cache --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirview-microservices-esr:1.0.0-snapshot
+
+\helm\helm upgrade pegacorn-fhirview-microservices-esr-site-a --install --namespace site-a --set serviceName=pegacorn-fhirview-microservices-esr,basePort=30891,basePortInsidePod=12121,imageTag=1.0.0-snapshot,hostPathCerts=/data/certificates,jvmMaxHeapSizeMB=768,wildflyLogLevel=INFO,wildflyAdminUser=admin,wildflyAdminPwd=Pega@dm1n,numOfPods=1 helm
+,wildflyEnableDebug="Yes"
+,numOfPods=1
+
+exec in a shell on the pegacorn-fhirview-microservices-esr-site-a pod
+cd $JBOSS_HOME/standalone/deployments/
+java -jar pegacorn-mimic-cli-general-1.0.0-SNAPSHOT-jar-with-dependencies.jar Location loadCSV -f "CHS-Locations.csv" > CHS-Locations.log
+java -jar pegacorn-mimic-cli-general-1.0.0-SNAPSHOT-jar-with-dependencies.jar Organization loadCSV -f "CHS-Organizations.csv" > CHS-Organizations.log
+java -jar pegacorn-mimic-cli-general-1.0.0-SNAPSHOT-jar-with-dependencies.jar PractitionerRole loadCSV -f "CHS-PractitionerRoles.csv" > CHS-PractitionerRoles.log
+#NOTE: the PractitionerRole load, can take around a minute
+
+To test view in a browser
+https://pegacorn-fhirview-microservices-esr.site-a:30891/pegacorn/operations/directory/r1/Location
+

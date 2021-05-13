@@ -1,0 +1,5 @@
+---
+name: pegacorn-fhirview-microservices-esr
+version: 1.0.0-SNAPSHOT
+description: pegacorn-fhirview-microservices-esr (esr = extremely simplified resources)
+icon: img/icons/camel.svg
